@@ -1,0 +1,97 @@
+/* Estilo general */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e1e;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+    text-align: center;
+}
+
+/* Contenedor del juego */
+#game-container {
+    margin: 0 auto;
+    display: block;
+    width: 800px;
+    height: 600px;
+    background-color: #000000;
+    border: 5px solid #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    position: relative;
+}
+
+/* Títulos */
+h1 {
+    font-size: 2rem;
+    color: #ffcc00;
+    margin-top: 20px;
+}
+
+/* Botones */
+button {
+    background-color: #ffcc00;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #ffaa00;
+    transform: scale(1.1);
+}
+
+/* Barra de estado del jugador */
+.player-status {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    width: 90%;
+    margin: 0 auto;
+}
+
+.player-status span {
+    margin: 0 5px;
+}
+
+/* Inventario */
+#inventory {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #333333;
+    border-radius: 10px;
+    color: #ffffff;
+    text-align: left;
+    font-size: 1rem;
+    width: 90%;
+    margin: 0 auto;
+}
+
+#inventory ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#inventory li {
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #444444;
+    border-radius: 5px;
+}
+
+/* Pie de página */
+footer {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: #888888;
+}
