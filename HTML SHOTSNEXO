@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHOTSNEXO</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
+    <script src="blockchain.js" defer></script>
+    <script src="game.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>SHOTSNEXO</h1>
+        <div id="player-status">
+            <span>Jugador: <span id="player-name">Desconocido</span></span>
+            <span>Tokens NEXO: <span id="player-tokens">0</span></span>
+        </div>
+    </header>
+
+    <main>
+        <div id="game-container"></div>
+        <div id="inventory">
+            <h2>Inventario</h2>
+            <ul id="weapon-list">
+                <!-- Aquí se mostrarán las armas -->
+            </ul>
+        </div>
+        <div id="shop">
+            <h2>Tienda</h2>
+            <button onclick="buyWeapon(0)">Comprar Arma 1</button>
+            <button onclick="buyWeapon(1)">Comprar Arma 2</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 SHOTSNEXO. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>
