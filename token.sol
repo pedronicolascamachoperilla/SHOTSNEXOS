@@ -87,3 +87,71 @@ contract NexoGame is ERC20, Ownable {
         return players[player].ownedWeapons;
     }
 }
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+/// @title NEXO Token and Game Contract
+/// @notice Este contrato incluye un token ERC20 y lógica para un sistema de juego multijugador.
+contract NexoGame is ERC20, Ownable {
+    uint256 private constant INITIAL_SUPPLY = 10_000_000 * 10 ** 18;
+
+    struct Weapon {
+        uint256 id;
+        string name;
+        uint256 price; // Precio en NEXO tokens
+        uint256 damage;
+        uint256 durability;
+    }
+
+    struct Player {
+        address wallet;
+        uint256[] ownedWeapons;
+        uint256 kills;
+        uint256 deaths;
+        uint256 score;
+    }
+
+    Weapon[] public weapons; // Lista de armas
+    mapping(address => Player) public players;
+
+    event WeaponAdded(uint256 weaponId, string name, uint256 price, uint256 damage, uint256 durability);
+    event WeaponPurchased(address indexed player, uint256 weaponId);
+    event PlayerRegistered(address indexed player);
+
+    constructor() ERC20("NEXO", "NEXO") {
+        _mint(msg.sender, INITIAL_SUPPLY);
+    }
+
+    function addWeapon(
+        string memory name,
+        uint256 price,
+        uint256 damage,
+        uint256 durability
+    ) external onlyOwner {
+        weapons.push(Weapon(weapons.length, name, price, damage, durability));
+        emit WeaponAdded(weapons.length - 1, name, price, damage, durability);
+    }
+
+    function purchaseWeapon(uint256 weaponId) external {
+        require(weaponId < weapons.length, "El arma no existe");
+        Weapon memory weapon = weapons[weaponId];
+        require(balanceOf(msg.sender) >= weapon.price, "Fondos insuficientes");
+
+        _transfer(msg.sender, owner(), weapon.price);
+        players[msg.sender].ownedWeapons.push(weaponId);
+        emit WeaponPurchased(msg.sender, weaponId);
+    }
+
+    function registerPlayer() external {
+        require(players[msg.sender].wallet == address(0), "Jugador ya registrado");
+        players[msg.sender] = Player(msg.sender, new uint256[](0), 0, 0, 0);
+        emit PlayerRegistered(msg.sender);
+    }
+
+    function getPlayerWeapons(address player) external view returns (uint256[] memory) {
+        return players[player].ownedWeapons;
+    }
+}
