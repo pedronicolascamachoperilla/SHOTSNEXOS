@@ -4,17 +4,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title NEXO Game Contract
-/// @notice Este contrato combina la funcionalidad de un token ERC20 con un sistema de juego multijugador.
+/// @title NEXO Token and Game Contract
+/// @notice Este contrato incluye un token ERC20 con un suministro inicial de 10,000,000 tokens
+///         y lógica para gestionar un sistema de juego multijugador.
 contract NexoGame is ERC20, Ownable {
-    uint256 private constant INITIAL_SUPPLY = 10_000_000 * 10 ** 18; // Suministro inicial
+    uint256 private constant INITIAL_SUPPLY = 10_000_000 * 10 ** 18; // Suministro inicial de 10 millones
 
-    constructor() ERC20("NEXO", "NEXO") {
-        _mint(msg.sender, INITIAL_SUPPLY); // Asignar suministro inicial al creador del contrato
-    }
-
-    // ----------- Estructuras y Variables del Juego -----------
-
+    // Estructuras y Variables del Juego
     struct Weapon {
         uint256 id;
         string name;
@@ -31,16 +27,20 @@ contract NexoGame is ERC20, Ownable {
         uint256 score; // Puntuación acumulada
     }
 
-    Weapon[] public weapons; // Armas disponibles en la tienda
+    Weapon[] public weapons; // Lista de armas disponibles en la tienda
     mapping(address => Player) public players; // Mapeo de jugadores registrados
 
-    event WeaponAdded(uint256 weaponId, string name, uint256 price);
+    // Eventos
+    event WeaponAdded(uint256 weaponId, string name, uint256 price, uint256 damage, uint256 durability);
     event WeaponPurchased(address indexed player, uint256 weaponId);
     event PlayerRegistered(address indexed player);
-    event GameModeCreated(string modeName);
 
-    // ----------- Funciones de Gestión de Armas -----------
+    // Constructor
+    constructor() ERC20("NEXO", "NEXO") {
+        _mint(msg.sender, INITIAL_SUPPLY); // Asignar suministro inicial al creador del contrato
+    }
 
+    // Funciones de Gestión de Armas
     /// @notice Agregar un arma a la tienda (solo administrador)
     /// @param name Nombre del arma
     /// @param price Precio en tokens NEXO
@@ -53,7 +53,7 @@ contract NexoGame is ERC20, Ownable {
         uint256 durability
     ) external onlyOwner {
         weapons.push(Weapon(weapons.length, name, price, damage, durability));
-        emit WeaponAdded(weapons.length - 1, name, price);
+        emit WeaponAdded(weapons.length - 1, name, price, damage, durability);
     }
 
     /// @notice Comprar un arma de la tienda
@@ -72,8 +72,7 @@ contract NexoGame is ERC20, Ownable {
         emit WeaponPurchased(msg.sender, weapon.id);
     }
 
-    // ----------- Funciones de Gestión de Jugadores -----------
-
+    // Funciones de Gestión de Jugadores
     /// @notice Registrar un jugador en el sistema
     function registerPlayer() external {
         require(players[msg.sender].wallet == address(0), "Jugador ya registrado");
@@ -83,40 +82,8 @@ contract NexoGame is ERC20, Ownable {
 
     /// @notice Obtener el inventario del jugador
     /// @param player Dirección del jugador
-    /// @return IDs de armas que posee el jugador
+    /// @return Lista de armas del jugador
     function getPlayerInventory(address player) external view returns (uint256[] memory) {
         return players[player].ownedWeapons;
-    }
-
-    // ----------- Modos de Juego -----------
-
-    enum GameMode { BattleRoyale, CaptureTheFlag, FreeForAll }
-
-    event GameStarted(GameMode mode);
-    event PlayerStatsUpdated(address indexed player, uint256 kills, uint256 deaths, uint256 score);
-
-    /// @notice Iniciar un modo de juego
-    /// @param mode Modo de juego a iniciar
-    function startGame(GameMode mode) external onlyOwner {
-        emit GameStarted(mode);
-    }
-
-    /// @notice Actualizar estadísticas de un jugador
-    /// @param player Dirección del jugador
-    /// @param kills Número de eliminaciones
-    /// @param deaths Número de muertes
-    /// @param score Puntuación obtenida
-    function updatePlayerStats(
-        address player,
-        uint256 kills,
-        uint256 deaths,
-        uint256 score
-    ) external onlyOwner {
-        require(players[player].wallet != address(0), "Jugador no registrado");
-        players[player].kills += kills;
-        players[player].deaths += deaths;
-        players[player].score += score;
-
-        emit PlayerStatsUpdated(player, kills, deaths, score);
     }
 }
