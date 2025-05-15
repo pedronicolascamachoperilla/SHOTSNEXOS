@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO Game</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>NEXO Game</h1>
+    <div id="game-container"></div>
+
+    <script>
+        const socket = io();
+
+        // Registro de jugador
+        const username = prompt("Ingrese su nombre de usuario:");
+        socket.emit('register', username);
+
+        // Comprar arma
+        function buyWeapon(weaponId) {
+            socket.emit('buyWeapon', weaponId);
+        }
+
+        // Actualizar lista de jugadores
+        socket.on('playerList', (players) => {
+            console.log('Jugadores conectados:', players);
+        });
+
+        socket.on('weaponPurchased', (data) => {
+            if (data.success) {
+                console.log(`Arma comprada con éxito: ID ${data.weaponId}`);
+            } else {
+                console.error('Error al comprar arma:', data.error);
+            }
+        });
+    </script>
+</body>
+</html>
