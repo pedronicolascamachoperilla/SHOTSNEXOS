@@ -5,16 +5,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title NEXO Token and Game Contract
-/// @notice Este contrato incluye un token ERC20 y lógica básica para un juego de disparos multijugador.
+/// @notice Este contrato incluye un token ERC20 con un suministro inicial de 10,000,000,000,000 tokens
+///         y lógica para gestionar un sistema de juego multijugador.
 contract NexoGame is ERC20, Ownable {
-    uint256 private constant INITIAL_SUPPLY = 1_000_000_000_000_000 * 10 ** 18; // Suministro inicial de 1 cuatrillón de tokens
+    uint256 private constant INITIAL_SUPPLY = 1_000_000_000_000_000 * 10 ** 18; // Suministro inicial de 1 cuatrillón
 
-    constructor() ERC20("NEXO", "NEXO") {
-        _mint(msg.sender, INITIAL_SUPPLY); // Asignar suministro inicial al creador del contrato
-    }
-
-    // ----------- Estructuras y Variables del Juego -----------
-
+    // Estructuras y Variables del Juego
     struct Weapon {
         uint256 id;
         string name;
@@ -31,17 +27,22 @@ contract NexoGame is ERC20, Ownable {
         uint256 score; // Puntuación acumulada
     }
 
-    Weapon[] public weapons; // Armas disponibles en la tienda
+    Weapon[] public weapons; // Lista de armas disponibles en la tienda
     mapping(address => Player) public players; // Mapeo de jugadores registrados
 
+    // Eventos
     event WeaponAdded(uint256 weaponId, string name, uint256 price, uint256 damage, uint256 durability);
     event WeaponPurchased(address indexed player, uint256 weaponId);
     event PlayerRegistered(address indexed player);
     event GameModeStarted(string modeName);
     event PlayerStatsUpdated(address indexed player, uint256 kills, uint256 deaths, uint256 score);
 
-    // ----------- Funciones de Gestión de Armas -----------
+    // Constructor
+    constructor() ERC20("NEXO", "NEXO") {
+        _mint(msg.sender, INITIAL_SUPPLY); // Asignar suministro inicial al creador del contrato
+    }
 
+    // Funciones de Gestión de Armas
     /// @notice Agregar un arma a la tienda (solo administrador)
     /// @param name Nombre del arma
     /// @param price Precio en tokens NEXO
@@ -64,7 +65,7 @@ contract NexoGame is ERC20, Ownable {
         Weapon memory weapon = weapons[weaponId];
         require(balanceOf(msg.sender) >= weapon.price, "Fondos insuficientes");
 
-        // Transferir tokens al propietario del contrato (Administrador)
+        // Transferir tokens al propietario del contrato
         _transfer(msg.sender, owner(), weapon.price);
 
         // Agregar arma al inventario del jugador
@@ -73,8 +74,7 @@ contract NexoGame is ERC20, Ownable {
         emit WeaponPurchased(msg.sender, weapon.id);
     }
 
-    // ----------- Funciones de Gestión de Jugadores -----------
-
+    // Funciones de Gestión de Jugadores
     /// @notice Registrar un jugador en el sistema
     function registerPlayer() external {
         require(players[msg.sender].wallet == address(0), "Jugador ya registrado");
@@ -84,7 +84,7 @@ contract NexoGame is ERC20, Ownable {
 
     /// @notice Obtener el inventario del jugador
     /// @param player Dirección del jugador
-    /// @return IDs de armas que posee el jugador
+    /// @return Lista de armas del jugador
     function getPlayerInventory(address player) external view returns (uint256[] memory) {
         return players[player].ownedWeapons;
     }

@@ -1,157 +1,129 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
-/// @title NEXO Token and Game Contract
-/// @notice Este contrato incluye un token ERC20 con un suministro inicial de 10,000,000 tokens
-///         y lógica para gestionar un sistema de juego multijugador.
-contract NexoGame is ERC20, Ownable {
-    uint256 private constant INITIAL_SUPPLY = 10_000_000 * 10 ** 18; // Suministro inicial de 10 millones
+/// @title NEXO Token y Sistema de Juego Multijugador
+/// @notice Token ERC20 y lógica de juego para battle royale, CTF y FFA, con compra de armas y objetos por el admin
+contract NexoGame is ERC20, Ownable, Pausable {
+    uint256 private constant INITIAL_SUPPLY = 1_000_000_000_000_000 * 10 ** 18; // 1 cuatrillón
 
-    // Estructuras y Variables del Juego
+    // Estructuras de armas y jugadores
     struct Weapon {
         uint256 id;
         string name;
-        uint256 price; // Precio en tokens NEXO
+        uint256 price; // en NEXO
         uint256 damage;
         uint256 durability;
     }
-
-    struct Player {
-        address wallet;
-        uint256[] ownedWeapons; // Lista de IDs de armas
-        uint256 kills; // Número de eliminaciones
-        uint256 deaths; // Número de muertes
-        uint256 score; // Puntuación acumulada
-    }
-
-    Weapon[] public weapons; // Lista de armas disponibles en la tienda
-    mapping(address => Player) public players; // Mapeo de jugadores registrados
-
-    // Eventos
-    event WeaponAdded(uint256 weaponId, string name, uint256 price, uint256 damage, uint256 durability);
-    event WeaponPurchased(address indexed player, uint256 weaponId);
-    event PlayerRegistered(address indexed player);
-
-    // Constructor
-    constructor() ERC20("NEXO", "NEXO") {
-        _mint(msg.sender, INITIAL_SUPPLY); // Asignar suministro inicial al creador del contrato
-    }
-
-    // Funciones de Gestión de Armas
-    /// @notice Agregar un arma a la tienda (solo administrador)
-    /// @param name Nombre del arma
-    /// @param price Precio en tokens NEXO
-    /// @param damage Daño que inflige el arma
-    /// @param durability Durabilidad del arma
-    function addWeapon(
-        string memory name,
-        uint256 price,
-        uint256 damage,
-        uint256 durability
-    ) external onlyOwner {
-        weapons.push(Weapon(weapons.length, name, price, damage, durability));
-        emit WeaponAdded(weapons.length - 1, name, price, damage, durability);
-    }
-
-    /// @notice Comprar un arma de la tienda
-    /// @param weaponId ID del arma a comprar
-    function purchaseWeapon(uint256 weaponId) external {
-        require(weaponId < weapons.length, "El arma no existe");
-        Weapon memory weapon = weapons[weaponId];
-        require(balanceOf(msg.sender) >= weapon.price, "Fondos insuficientes");
-
-        // Transferir tokens al propietario del contrato
-        _transfer(msg.sender, owner(), weapon.price);
-
-        // Agregar arma al inventario del jugador
-        players[msg.sender].ownedWeapons.push(weapon.id);
-
-        emit WeaponPurchased(msg.sender, weapon.id);
-    }
-
-    // Funciones de Gestión de Jugadores
-    /// @notice Registrar un jugador en el sistema
-    function registerPlayer() external {
-        require(players[msg.sender].wallet == address(0), "Jugador ya registrado");
-        players[msg.sender] = Player(msg.sender, new uint256[](0), 0, 0, 0);
-        emit PlayerRegistered(msg.sender);
-    }
-
-    /// @notice Obtener el inventario del jugador
-    /// @param player Dirección del jugador
-    /// @return Lista de armas del jugador
-    function getPlayerInventory(address player) external view returns (uint256[] memory) {
-        return players[player].ownedWeapons;
-    }
-}
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
-/// @title NEXO Token and Game Contract
-/// @notice Este contrato incluye un token ERC20 y lógica para un sistema de juego multijugador.
-contract NexoGame is ERC20, Ownable {
-    uint256 private constant INITIAL_SUPPLY = 10_000_000 * 10 ** 18;
-
-    struct Weapon {
-        uint256 id;
-        string name;
-        uint256 price; // Precio en NEXO tokens
-        uint256 damage;
-        uint256 durability;
-    }
-
     struct Player {
         address wallet;
         uint256[] ownedWeapons;
         uint256 kills;
         uint256 deaths;
         uint256 score;
+        bool registered;
+        string username;
     }
 
-    Weapon[] public weapons; // Lista de armas
+    Weapon[] public weapons;
     mapping(address => Player) public players;
+    mapping(string => address) public usernameToAddress;
 
+    // Modos de juego
+    enum GameMode { BattleRoyale, CaptureTheFlag, FreeForAll }
+    GameMode public currentGameMode;
+    string[] public gameModes = ["Battle Royale", "Capture The Flag", "Free For All"];
+
+    // Eventos
     event WeaponAdded(uint256 weaponId, string name, uint256 price, uint256 damage, uint256 durability);
     event WeaponPurchased(address indexed player, uint256 weaponId);
-    event PlayerRegistered(address indexed player);
+    event PlayerRegistered(address indexed player, string username);
+    event GameModeStarted(GameMode mode);
+    event PlayerStatsUpdated(address indexed player, uint256 kills, uint256 deaths, uint256 score);
 
+    // Constructor
     constructor() ERC20("NEXO", "NEXO") {
         _mint(msg.sender, INITIAL_SUPPLY);
     }
 
+    // ----------- Funciones de Pausa -----------
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    // ----------- Gestión de Armas -----------
     function addWeapon(
         string memory name,
         uint256 price,
         uint256 damage,
         uint256 durability
-    ) external onlyOwner {
+    ) external onlyOwner whenNotPaused {
         weapons.push(Weapon(weapons.length, name, price, damage, durability));
         emit WeaponAdded(weapons.length - 1, name, price, damage, durability);
     }
 
-    function purchaseWeapon(uint256 weaponId) external {
+    function purchaseWeapon(uint256 weaponId) external whenNotPaused {
+        require(players[msg.sender].registered, "Debes registrarte primero");
         require(weaponId < weapons.length, "El arma no existe");
         Weapon memory weapon = weapons[weaponId];
         require(balanceOf(msg.sender) >= weapon.price, "Fondos insuficientes");
-
         _transfer(msg.sender, owner(), weapon.price);
-        players[msg.sender].ownedWeapons.push(weaponId);
+        players[msg.sender].ownedWeapons.push(weapon.id);
         emit WeaponPurchased(msg.sender, weaponId);
     }
 
-    function registerPlayer() external {
-        require(players[msg.sender].wallet == address(0), "Jugador ya registrado");
-        players[msg.sender] = Player(msg.sender, new uint256[](0), 0, 0, 0);
-        emit PlayerRegistered(msg.sender);
+    // ----------- Gestión de Jugadores -----------
+    function registerPlayer(string memory username) external whenNotPaused {
+        require(!players[msg.sender].registered, "Ya registrado");
+        require(usernameToAddress[username] == address(0), "Nombre de usuario en uso");
+        players[msg.sender] = Player(msg.sender, new uint256[](0), 0, 0, 0, true, username);
+        usernameToAddress[username] = msg.sender;
+        emit PlayerRegistered(msg.sender, username);
     }
 
-    function getPlayerWeapons(address player) external view returns (uint256[] memory) {
+    function getPlayerInventory(address player) external view returns (uint256[] memory) {
         return players[player].ownedWeapons;
+    }
+
+    // ----------- Modos de Juego -----------
+    function startGameMode(GameMode mode) external onlyOwner whenNotPaused {
+        currentGameMode = mode;
+        emit GameModeStarted(mode);
+    }
+
+    function updatePlayerStats(address player, uint256 kills, uint256 deaths, uint256 score) external onlyOwner whenNotPaused {
+        require(players[player].registered, "Jugador no registrado");
+        players[player].kills = kills;
+        players[player].deaths = deaths;
+        players[player].score = score;
+        emit PlayerStatsUpdated(player, kills, deaths, score);
+    }
+
+    // ----------- Compatibilidad Multired y Multitoken -----------
+    // Permite comprar armas con cualquier token ERC20 aprobado por el admin
+    function purchaseWeaponWithToken(uint256 weaponId, address erc20, uint256 amount) external whenNotPaused {
+        require(players[msg.sender].registered, "Debes registrarte primero");
+        require(weaponId < weapons.length, "El arma no existe");
+        Weapon memory weapon = weapons[weaponId];
+        require(amount >= weapon.price, "Fondos insuficientes");
+        IERC20(erc20).transferFrom(msg.sender, owner(), amount);
+        players[msg.sender].ownedWeapons.push(weapon.id);
+        emit WeaponPurchased(msg.sender, weaponId);
+    }
+
+    // ----------- Utilidades -----------
+    function getWeapons() external view returns (Weapon[] memory) {
+        return weapons;
+    }
+    function getPlayer(address player) external view returns (Player memory) {
+        return players[player];
     }
 }
