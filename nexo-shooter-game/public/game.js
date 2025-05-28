@@ -38,6 +38,18 @@ const levelData = {
         { x: 300, y: 300, radius: 60 },
         { x: 700, y: 400, radius: 40 }
     ],
+    interactiveObjects: [
+        // Ejemplos de objetos interactivos
+        { type: 'door', position: { x: 400, y: 300 }, size: { width: 50, height: 100 }, state: 'closed', mode: 'manual' },
+        { type: 'elevator', start: { x: 500, y: 400 }, end: { x: 500, y: 200 } },
+        { type: 'zipline', start: { x: 200, y: 100 }, end: { x: 600, y: 100 } },
+        { type: 'ladder', position: { x: 700, y: 500 }, height: 100 },
+        { type: 'destructible', position: { x: 300, y: 400 }, size: { width: 80, height: 40 }, hp: 100 },
+        { type: 'switch', position: { x: 450, y: 350 } },
+        { type: 'trap', position: { x: 350, y: 250 } },
+        { type: 'alarm', position: { x: 550, y: 150 } },
+        { type: 'moving_cover', path: [{ x: 100, y: 500 }, { x: 200, y: 500 }] }
+    ]
 };
 
 function renderLevel(scene) {
@@ -788,6 +800,91 @@ async function connectToBlockchain() {
         console.log('Por favor, instala MetaMask o una billetera compatible.');
     }
 }
+
+// --- Renderizado y lógica de elementos interactivos avanzados ---
+function renderInteractiveObjects(scene, mapData) {
+  if (!mapData.interactiveObjects) return;
+  mapData.interactiveObjects.forEach(obj => {
+    if(obj.type==='door') {
+      // Render puerta
+      const door = scene.add.rectangle(obj.position.x, obj.position.y, obj.size.width, obj.size.height, obj.state==='open'?0x00ff00:0xff0000, 0.5);
+      scene.physics.add.existing(door, true);
+      // Lógica de apertura/cierre
+      if(obj.mode==='auto') {
+        scene.physics.add.overlap(player, door, () => { door.fillColor=0x00ff00; obj.state='open'; }, null, scene);
+      } else {
+        // Manual: abrir/cerrar con tecla E
+        scene.input.keyboard.on('keydown-E', () => {
+          if(Phaser.Geom.Rectangle.Contains(door.getBounds(), player.x, player.y)) {
+            obj.state = obj.state==='open'?'closed':'open';
+            door.fillColor = obj.state==='open'?0x00ff00:0xff0000;
+          }
+        });
+      }
+    } else if(obj.type==='elevator') {
+      // Render ascensor (línea)
+      const elevator = scene.add.line(0,0,obj.start.x,obj.start.y,obj.end.x,obj.end.y,0x00aaff,0.7).setLineWidth(4);
+      // Movimiento simulado: tecla Q sube, A baja
+      scene.input.keyboard.on('keydown-Q',()=>{player.x=obj.end.x;player.y=obj.end.y;});
+      scene.input.keyboard.on('keydown-A',()=>{player.x=obj.start.x;player.y=obj.start.y;});
+    } else if(obj.type==='zipline') {
+      // Render tirolina (línea punteada)
+      const zip = scene.add.line(0,0,obj.start.x,obj.start.y,obj.end.x,obj.end.y,0x00ffff,0.5).setLineWidth(2);
+      zip.setDash([6,6]);
+      // Movimiento: tecla Z usa tirolina
+      scene.input.keyboard.on('keydown-Z',()=>{player.x=obj.end.x;player.y=obj.end.y;});
+    } else if(obj.type==='ladder') {
+      // Render escalera
+      const ladder = scene.add.rectangle(obj.position.x, obj.position.y+obj.height/2, 8, obj.height, 0x964B00, 0.7);
+      scene.physics.add.existing(ladder, true);
+      // Subir/bajar: teclas W/S
+      scene.input.keyboard.on('keydown-W',()=>{player.y-=20;});
+      scene.input.keyboard.on('keydown-S',()=>{player.y+=20;});
+    } else if(obj.type==='destructible') {
+      // Render destructible
+      const dest = scene.add.rectangle(obj.position.x, obj.position.y, obj.size.width, obj.size.height, 0x888888, 0.8);
+      scene.physics.add.existing(dest, true);
+      dest.hp = obj.hp;
+      // Daño simulado: tecla D
+      scene.input.keyboard.on('keydown-D',()=>{
+        dest.hp -= 25;
+        if(dest.hp<=0) dest.destroy();
+      });
+    } else if(obj.type==='switch') {
+      // Render switch
+      const sw = scene.add.rectangle(obj.position.x, obj.position.y, 12, 12, 0xffff00, 0.9);
+      scene.physics.add.existing(sw, true);
+      scene.input.keyboard.on('keydown-F',()=>{sw.fillColor=0x00ff00;});
+    } else if(obj.type==='trap') {
+      // Render trampa
+      const trap = scene.add.circle(obj.position.x, obj.position.y, 10, 0xff00ff, 0.7);
+      scene.physics.add.existing(trap, true);
+      // Activar: tecla T
+      scene.input.keyboard.on('keydown-T',()=>{trap.fillColor=0x000000;});
+    } else if(obj.type==='alarm') {
+      // Render alarma
+      const alarm = scene.add.circle(obj.position.x, obj.position.y, 16, 0xff9900, 0.5);
+      scene.physics.add.existing(alarm, true);
+      // Activar: tecla R
+      scene.input.keyboard.on('keydown-R',()=>{alarm.fillColor=0xff0000;});
+    } else if(obj.type==='moving_cover') {
+      // Render cobertura móvil (línea)
+      const cover = scene.add.line(0,0,obj.path[0].x,obj.path[0].y,obj.path[1].x,obj.path[1].y,0x00aa00,0.7).setLineWidth(8);
+      // Movimiento: tecla M mueve la cobertura
+      let idx=0;
+      scene.input.keyboard.on('keydown-M',()=>{
+        idx = (idx+1)%obj.path.length;
+        cover.setTo(obj.path[idx].x,obj.path[idx].y,obj.path[(idx+1)%obj.path.length].x,obj.path[(idx+1)%obj.path.length].y);
+      });
+    }
+  });
+}
+// Llama a renderInteractiveObjects(scene, levelData) en create()
+const oldCreate = create;
+create = function() {
+  oldCreate.call(this);
+  renderInteractiveObjects(this, levelData);
+};
 
 // --- INICIAR JUEGO ---
 const config = {

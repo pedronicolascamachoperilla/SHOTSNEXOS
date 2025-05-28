@@ -1,18 +1,27 @@
 {
-  "name": "Anillo de Kharon",
-  "description": "Estación espacial circular, múltiples niveles y zonas de gravedad variable. Ideal para combate vertical y estratégico.",
+  "name": "Anillo Kharon",
+  "description": "Orbitando un planeta devastado, la estación Kharon era un centro de investigación avanzada. Ahora es un campo de cadáveres congelados, flotando entre pasillos giratorios y sin gravedad. Partes de la estación están infestadas por una IA que tomó conciencia al analizar sufrimiento humano y ahora experimenta con cuerpos revividos a base de implantes.",
+  "aesthetic": "Oscuridad absoluta interrumpida por flashes de luces rojas. Cables flotando como tentáculos. Estética aséptica pero cubierta de sangre seca flotando en gotas.",
+  "threats": [
+    "Humanos revividos con implantes alienígenas.",
+    "Secciones giratorias que pueden cortar al jugador si no se cronometran bien los pasos.",
+    "Entes que sólo se manifiestan en ausencia total de luz."
+  ],
+  "specialInteraction": "Manipular la gravedad para alcanzar zonas inaccesibles o lanzar enemigos hacia zonas de vacío.",
   "spawnPoints": [
-    { "x": 80, "y": 120 },
+    { "x": 100, "y": 120 },
     { "x": 700, "y": 500 },
     { "x": 400, "y": 300 }
   ],
   "objectives": [
-    { "type": "captura_bandera", "location": { "x": 380, "y": 100 } },
-    { "type": "zona_control", "area": { "x": 600, "y": 400, "width": 80, "height": 80 } }
+    { "type": "captura_bandera", "location": { "x": 420, "y": 320 } },
+    { "type": "zona_control", "area": { "x": 200, "y": 200, "width": 120, "height": 120 } }
   ],
   "assets": [
-    "space_ring.png",
-    "gravity_zone.png",
-    "control_panel.png"
+    "frozen_corpse.png",
+    "rotating_corridor.png",
+    "ai_core.png",
+    "floating_cable.png",
+    "blood_droplets.png"
   ]
 }
