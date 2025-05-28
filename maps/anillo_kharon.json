@@ -1,0 +1,18 @@
+{
+  "name": "Anillo de Kharon",
+  "description": "Estación espacial circular, múltiples niveles y zonas de gravedad variable. Ideal para combate vertical y estratégico.",
+  "spawnPoints": [
+    { "x": 80, "y": 120 },
+    { "x": 700, "y": 500 },
+    { "x": 400, "y": 300 }
+  ],
+  "objectives": [
+    { "type": "captura_bandera", "location": { "x": 380, "y": 100 } },
+    { "type": "zona_control", "area": { "x": 600, "y": 400, "width": 80, "height": 80 } }
+  ],
+  "assets": [
+    "space_ring.png",
+    "gravity_zone.png",
+    "control_panel.png"
+  ]
+}

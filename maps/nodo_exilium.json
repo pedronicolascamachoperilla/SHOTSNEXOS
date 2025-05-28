@@ -1,0 +1,26 @@
+{
+  "name": "Nodo Exilium",
+  "description": "Un distrito de cuarentena olvidado en lo alto de una megaciudad vertical. Las plataformas están partidas, los puentes colgantes caen al vacío, y la ciudad continúa expandiéndose hacia arriba, mientras abajo solo queda podredumbre. Aquí vivieron los parias del sistema, usados como sujetos de prueba por corporaciones médicas.",
+  "aesthetic": "Edificios oxidados cubiertos de pantallas rotas con propaganda. Luces parpadeantes. Humo verde saliendo de grietas.",
+  "threats": [
+    "Enjambres de drones médicos reconvertidos en torturadores voladores.",
+    "Niños deformes que atacan en grupo.",
+    "Espectros digitales de pacientes fallecidos atrapados en red local."
+  ],
+  "specialInteraction": "Puedes acceder a pisos superiores desactivando elevadores verticales, pero cada subida reduce tu oxígeno y cordura.",
+  "spawnPoints": [
+    { "x": 80, "y": 160 },
+    { "x": 720, "y": 480 },
+    { "x": 400, "y": 320 }
+  ],
+  "objectives": [
+    { "type": "captura_bandera", "location": { "x": 420, "y": 320 } },
+    { "type": "zona_control", "area": { "x": 300, "y": 200, "width": 120, "height": 120 } }
+  ],
+  "assets": [
+    "broken_screen.png",
+    "rusty_building.png",
+    "hanging_bridge.png",
+    "green_smoke.png"
+  ]
+}

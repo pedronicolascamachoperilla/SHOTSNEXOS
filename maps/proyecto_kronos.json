@@ -1,0 +1,26 @@
+{
+  "name": "Proyecto KRONOS",
+  "description": "Una estación de clonación enterrada en el fondo de un lago ácido en un planeta extranjero. Las aguas externas corroen todo, y la estación está fracturada. Los clones generados aquí sufrieron mutaciones genéticas extremas, y ahora vagan sin identidad, buscando un propósito.",
+  "aesthetic": "Pasillos con tanques de clonación rotos, luces verdes, líquidos viscosos que gotean del techo, cámaras de vigilancia que lloran.",
+  "threats": [
+    "Clones defectuosos con múltiples personalidades que cambian de patrón de ataque en tiempo real.",
+    "Tanques que liberan abominaciones si se activan por error.",
+    "Ácidos ambientales que degradan lentamente tu equipo."
+  ],
+  "specialInteraction": "Puedes tomar muestras de ADN para desbloquear habilidades temporales... o perder el control de tu cuerpo.",
+  "spawnPoints": [
+    { "x": 110, "y": 160 },
+    { "x": 690, "y": 480 },
+    { "x": 420, "y": 320 }
+  ],
+  "objectives": [
+    { "type": "captura_bandera", "location": { "x": 410, "y": 310 } },
+    { "type": "zona_control", "area": { "x": 260, "y": 220, "width": 120, "height": 120 } }
+  ],
+  "assets": [
+    "cloning_tank.png",
+    "acid_lake.png",
+    "mutant_clone.png",
+    "crying_camera.png"
+  ]
+}

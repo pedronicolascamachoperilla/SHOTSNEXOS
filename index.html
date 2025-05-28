@@ -10,93 +10,63 @@
     <script src="game.js" defer></script>
 </head>
 <body>
-    <header>
-        <h1>SHOTSNEXO</h1>
-        <div id="player-status">
-            <span>Jugador: <span id="player-name">Desconocido</span></span>
-            <span>Tokens NEXO: <span id="player-tokens">0</span></span>
-        </div>
-    </header>
-
-    <main>
-        <div id="game-container"></div>
-        <div id="inventory">
-            <h2>Inventario</h2>
-            <ul id="weapon-list">
-                <!-- Aquí se mostrarán las armas -->
-            </ul>
-        </div>
-        <div id="shop">
-            <h2>Tienda</h2>
-            <button onclick="buyWeapon(0)">Comprar Arma 1</button>
-            <button onclick="buyWeapon(1)">Comprar Arma 2</button>
-            <hr>
-            <h3>Vehículos y Power-ups</h3>
-            <button onclick="buyMountable('monstertruck')">Comprar Monster Truck</button>
-            <button onclick="buyMountable('sportscar')">Comprar Sports Car</button>
-            <button onclick="buyMountable('jeep')">Comprar Jeep</button>
-            <button onclick="buyMountable('motorbike')">Comprar Motorbike</button>
-            <button onclick="buyMountable('rocket backpack')">Comprar Rocket Backpack</button>
-            <button onclick="buyMountable('parachute')">Comprar Parachute</button>
-            <button onclick="buyMountable('ski board')">Comprar Ski Board</button>
-            <button onclick="buyMountable('surfer board')">Comprar Surfer Board</button>
-            <button onclick="buyMountable('snowmobile')">Comprar Snowmobile</button>
-            <button onclick="buyMountable('tank car')">Comprar Tank Car</button>
-            <button onclick="buyMountable('turret tank')">Comprar Turret Tank</button>
-        </div>
-        <div id="mountable-inventory" style="margin:20px 0; padding:10px; background:#222; color:#fff; border-radius:8px; max-width:600px; margin-left:auto; margin-right:auto;">
-            <h2>Mis Vehículos y Power-ups</h2>
-            <button onclick="renderMountableInventory()">Actualizar inventario de montables</button>
-            <div id="mountable-list">Cargando...</div>
-        </div>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 SHOTSNEXO. Todos los derechos reservados.</p>
-    </footer>
-    <script>
-        async function renderMountableInventory() {
-            const listDiv = document.getElementById('mountable-list');
-            if (!window.contract || !window.signer || !window.contract.getPlayerMountables) {
-                listDiv.innerHTML = 'Conéctate a la blockchain para ver tus objetos.';
-                return;
-            }
-            try {
-                const address = await window.signer.getAddress();
-                const ownedMountables = await window.contract.getPlayerMountables(address);
-                const mountables = [
-                    { key: 'monstertruck', name: 'Monster Truck' },
-                    { key: 'sportscar', name: 'Sports Car' },
-                    { key: 'jeep', name: 'Jeep' },
-                    { key: 'motorbike', name: 'Motorbike' },
-                    { key: 'rocket backpack', name: 'Rocket Backpack' },
-                    { key: 'parachute', name: 'Parachute' },
-                    { key: 'ski board', name: 'Ski Board' },
-                    { key: 'surfer board', name: 'Surfer Board' },
-                    { key: 'snowmobile', name: 'Snowmobile' },
-                    { key: 'tank car', name: 'Tank Car' },
-                    { key: 'turret tank', name: 'Turret Tank' }
-                ];
-                if (ownedMountables.length === 0) {
-                    listDiv.innerHTML = '<em>No tienes objetos montables comprados.</em>';
-                    return;
-                }
-                let html = '<ul style="list-style:none;padding:0;">';
-                ownedMountables.forEach(id => {
-                    const idx = Number(id);
-                    if (mountables[idx]) {
-                        html += `<li style='margin:8px 0;'><img src='assets/${mountables[idx].key}.png' style='width:48px;height:48px;vertical-align:middle;margin-right:10px;'>${mountables[idx].name}</li>`;
-                    }
-                });
-                html += '</ul>';
-                listDiv.innerHTML = html;
-            } catch (e) {
-                listDiv.innerHTML = 'Error al consultar la blockchain.';
-            }
-        }
-    </script>
+  <h1>DEMO: Módulos avanzados de mapas NEXO</h1>
+  <div id="editor-container" style="border:1px solid #888; width:400px; height:300px; float:left; margin:10px;"></div>
+  <canvas id="minimap-canvas" width="320" height="240" style="border:1px solid #888; float:left; margin:10px;"></canvas>
+  <div id="community-container" style="clear:both; margin:10px;"></div>
+  <div id="filters-container" style="margin:10px;"></div>
+  <script src="maps/editor.js"></script>
+  <script src="maps/minimap.js"></script>
+  <script src="maps/community.js"></script>
+  <script src="maps/filters.js"></script>
+  <script>
+    // Editor visual de mapas
+    const editor = new MapEditor('editor-container');
+    // MiniMap interactivo
+    const mapData = { name: 'Demo', description: 'Mapa demo', spawnPoints: [{x:100,y:100}], objectives: [], assets: [] };
+    const minimap = new MiniMap('minimap-canvas', mapData);
+    // Comunidad de mapas
+    const community = new CommunityMaps('https://api.nexo-game.com');
+    community.fetchMaps().then(maps => {
+      document.getElementById('community-container').innerText = 'Mapas comunidad: ' + JSON.stringify(maps);
+    });
+    // Filtros avanzados
+    const mapsList = [mapData];
+    const filters = new MapFilters(mapsList);
+    filters.setFilter('name', 'Demo');
+    document.getElementById('filters-container').innerText = 'Filtrado: ' + JSON.stringify(filters.getFilteredMaps());
+  </script>
 </body>
 </html>
 <div>
     Wallet del administrador: <span id="adminWallet"></span>
 </div>
+
+<!-- --- DEMO de integración de módulos avanzados de mapas ---
+// Para usar en el frontend (por ejemplo, en index.html):
+//
+// <div id="editor-container"></div>
+// <canvas id="minimap-canvas" width="320" height="240"></canvas>
+// <div id="community-container"></div>
+// <div id="filters-container"></div>
+// <script src="maps/editor.js"></script>
+// <script src="maps/minimap.js"></script>
+// <script src="maps/community.js"></script>
+// <script src="maps/filters.js"></script>
+// <script>
+//   // Editor visual de mapas
+//   const editor = new MapEditor('editor-container');
+//   // MiniMap interactivo
+//   const mapData = { name: 'Demo', description: 'Mapa demo', spawnPoints: [{x:100,y:100}], objectives: [], assets: [] };
+//   const minimap = new MiniMap('minimap-canvas', mapData);
+//   // Comunidad de mapas
+//   const community = new CommunityMaps('https://api.nexo-game.com');
+//   community.fetchMaps().then(maps => console.log('Mapas comunidad:', maps));
+//   // Filtros avanzados
+//   const mapsList = [mapData];
+//   const filters = new MapFilters(mapsList);
+//   filters.setFilter('name', 'Demo');
+//   console.log('Filtrado:', filters.getFilteredMaps());
+// </script>
+//
+// Consulta la documentación de cada módulo para ampliar la integración y personalización. -->

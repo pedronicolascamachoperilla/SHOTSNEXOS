@@ -1,0 +1,26 @@
+{
+  "name": "Matriz de Sangre",
+  "description": "Una anomalía geológica que resultó ser un ente consciente de escala planetaria. Todo el mapa está dentro de su cuerpo: órganos, venas, nódulos neuronales, cámaras digestivas. No hay metal ni tecnología. Todo late, sangra y reacciona a tu presencia.",
+  "aesthetic": "Cuerpos empalados en paredes vivas, fluidos orgánicos por doquier, sonido de respiración masiva de fondo.",
+  "threats": [
+    "Células inmunológicas de forma humanoide.",
+    "Parásitos internos que luchan entre sí por el control del huésped.",
+    "Músculos que te aprisionan si pasas por ciertas arterias vivas."
+  ],
+  "specialInteraction": "Puedes conectarte a nervios o glándulas para manipular el entorno... pero el ente podría absorber tu conciencia si abusas de su sistema.",
+  "spawnPoints": [
+    { "x": 90, "y": 140 },
+    { "x": 710, "y": 510 },
+    { "x": 420, "y": 310 }
+  ],
+  "objectives": [
+    { "type": "captura_bandera", "location": { "x": 400, "y": 300 } },
+    { "type": "zona_control", "area": { "x": 250, "y": 250, "width": 120, "height": 120 } }
+  ],
+  "assets": [
+    "organic_wall.png",
+    "neural_nodule.png",
+    "artery_trap.png",
+    "parasite.png"
+  ]
+}

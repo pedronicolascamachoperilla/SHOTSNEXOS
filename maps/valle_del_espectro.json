@@ -1,0 +1,25 @@
+{
+  "name": "Valle del Espectro",
+  "description": "Campo de batalla nuclear petrificado, lleno de estatuas humanas de ceniza. Arena grisácea, estructuras óseas, nubes oscuras y descargas ocasionales. Las almas de los caídos están atrapadas en bucles.",
+  "spawnPoints": [
+    { "x": 100, "y": 150 },
+    { "x": 700, "y": 420 },
+    { "x": 400, "y": 320 }
+  ],
+  "objectives": [
+    { "type": "absorber_radiacion", "location": { "x": 380, "y": 100 } },
+    { "type": "zona_control", "area": { "x": 600, "y": 400, "width": 80, "height": 80 } }
+  ],
+  "assets": [
+    "ash_statue.png",
+    "bone_structure.png",
+    "dark_clouds.png",
+    "radioactive_sand.png"
+  ],
+  "threats": [
+    "Soldados espectrales durante tormentas",
+    "Criaturas de arena radiactiva",
+    "Minas inteligentes activas"
+  ],
+  "specialInteraction": "Absorber restos de radiación para potenciarte, a costa de perder humanidad y forma física."
+}

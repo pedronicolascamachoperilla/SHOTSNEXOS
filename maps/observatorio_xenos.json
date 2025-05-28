@@ -1,0 +1,25 @@
+{
+  "name": "Observatorio Xenos",
+  "description": "Estación científica para estudiar un agujero negro. Zonas con distorsión temporal: algunas envejecen en segundos, otras están en bucles. Interiores curvos, vitrales estelares rotos, iluminación azul tenue, distorsión visual constante.",
+  "spawnPoints": [
+    { "x": 120, "y": 180 },
+    { "x": 600, "y": 400 },
+    { "x": 350, "y": 250 }
+  ],
+  "objectives": [
+    { "type": "ralentizar_enemigos", "location": { "x": 400, "y": 300 } },
+    { "type": "salto_temporal", "area": { "x": 200, "y": 200, "width": 100, "height": 100 } }
+  ],
+  "assets": [
+    "curved_hall.png",
+    "broken_stained_glass.png",
+    "blue_light.png",
+    "distortion_effect.png"
+  ],
+  "threats": [
+    "Investigadores atrapados en el tiempo",
+    "Entidades extraplanetarias",
+    "Campos gravitacionales inestables"
+  ],
+  "specialInteraction": "Alterar el flujo temporal en zonas específicas para ralentizar enemigos o saltar años en un paso, con efectos secundarios."
+}

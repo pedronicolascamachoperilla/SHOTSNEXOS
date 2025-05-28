@@ -65,7 +65,7 @@ let isReloading = false;
 let lastShotTime = 0;
 
 // --- Diseño de Niveles: zonas, rutas y verticalidad ---
-const levelData = {
+let levelData = {
     openZones: [
         { x: 100, y: 100, width: 300, height: 200 },
         { x: 500, y: 350, width: 200, height: 150 }
@@ -675,7 +675,9 @@ async function onPickupMountable(player, item) {
 }
 
 // --- Diseño de Niveles: zonas, rutas y verticalidad ---
-const levelData = {
+// (Eliminada la declaración duplicada de levelData aquí, solo debe existir una)
+// Declaración única de levelData (dejar solo esta, eliminar duplicados en el archivo)
+let levelData = {
     openZones: [
         { x: 100, y: 100, width: 300, height: 200 },
         { x: 500, y: 350, width: 200, height: 150 }
@@ -689,36 +691,36 @@ const levelData = {
         { x: 400, y: 200, width: 120, height: 20 }
     ],
     altRoutes: [
-        // Puedes usar esto para rutas alternativas (por ejemplo, túneles o caminos elevados)
         { from: { x: 100, y: 100 }, to: { x: 700, y: 500 } }
     ],
     roads: [
-        { x: 50, y: 550, width: 700, height: 30 }, // carretera principal
-        { x: 300, y: 100, width: 200, height: 20 } // carretera secundaria
+        { x: 50, y: 550, width: 700, height: 30 },
+        { x: 300, y: 100, width: 200, height: 20 }
     ],
     bridges: [
-        { x: 350, y: 300, width: 120, height: 18 } // puente
+        { x: 350, y: 300, width: 120, height: 18 }
     ],
     trainTracks: [
-        { x: 100, y: 500, width: 600, height: 10 }, // vía de tren
-        { x: 200, y: 400, width: 300, height: 10 } // túnel de tren
+        { x: 100, y: 500, width: 600, height: 10 },
+        { x: 200, y: 400, width: 300, height: 10 }
     ],
     runways: [
         { x: 600, y: 80, width: 180, height: 24, type: 'avion' },
         { x: 80, y: 420, width: 120, height: 24, type: 'helicoptero' }
     ],
-    // Edificios (verticalidad y cobertura)
     buildings: [
         { x: 150, y: 150, width: 80, height: 120 },
         { x: 600, y: 100, width: 100, height: 180 }
     ],
-    // Colinas (verticalidad, solo visual)
     hills: [
         { x: 300, y: 300, radius: 60 },
         { x: 700, y: 400, radius: 40 }
-    ],
+    ]
 };
 
+// Eliminar cualquier otra declaración de 'levelData' en el archivo para evitar errores de redeclaración.
+
+// --- RENDERIZADO Y LÓGICA DEL JUEGO ---
 function renderLevel(scene) {
     // Zonas abiertas (opcional: solo visual)
     levelData.openZones.forEach(zone => {
@@ -803,6 +805,44 @@ function renderLevel(scene) {
         });
     }
 }
+
+// --- Renderizado de spawnPoints, objectives y assets del mapa cargado ---
+function renderMapDetails(scene, map) {
+    // Renderizar puntos de aparición
+    if (map.spawnPoints) {
+        map.spawnPoints.forEach(spawn => {
+            scene.add.circle(spawn.x, spawn.y, 12, 0x00ffcc, 0.7).setStrokeStyle(2, 0x003333);
+        });
+    }
+    // Renderizar objetivos
+    if (map.objectives) {
+        map.objectives.forEach(obj => {
+            if (obj.type === 'captura_bandera') {
+                scene.add.star(obj.location.x, obj.location.y, 5, 8, 18, 0xffd700, 0.8);
+            } else if (obj.type === 'zona_control') {
+                scene.add.rectangle(obj.area.x, obj.area.y, obj.area.width, obj.area.height, 0x00ff00, 0.18).setStrokeStyle(2, 0x006600);
+            }
+        });
+    }
+    // Renderizar assets (solo visual, requiere que los assets existan en /assets)
+    if (map.assets) {
+        map.assets.forEach((asset, idx) => {
+            scene.add.image(80 + idx * 64, 540, asset).setScale(0.7).setAlpha(0.7);
+        });
+    }
+}
+
+// Llama a renderMapDetails en create después de cargar el mapa
+const originalCreateMap = create;
+create = async function() {
+    if (originalCreateMap) await originalCreateMap.call(this);
+    if (typeof loadMap === 'function') {
+        const map = await loadMap('ciudad_ruinas');
+        if (map) {
+            renderMapDetails(this, map);
+        }
+    }
+};
 
 // Efectos gore y sangre
 function spawnGoreEffect(scene, x, y) {
@@ -1120,3 +1160,239 @@ keys.useGrenade = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G);
 this.input.keyboard.on('keydown-G', () => {
     useGrenade('frag9x');
 });
+
+// --- Carga dinámica de mapas desde la carpeta /maps ---
+async function loadMap(mapName) {
+    // Carga el archivo JSON del mapa desde la carpeta /maps
+    const response = await fetch(`maps/${mapName}.json`);
+    if (!response.ok) {
+        console.error('No se pudo cargar el mapa:', mapName);
+        return null;
+    }
+    const mapData = await response.json();
+    return mapData;
+}
+
+// Ejemplo de uso: cargar y aplicar el mapa "ciudad_ruinas" al iniciar el juego
+(async () => {
+    const map = await loadMap('ciudad_ruinas');
+    if (map) {
+        // Sobrescribe levelData con los datos del mapa cargado
+        levelData = map;
+        // Puedes agregar aquí lógica para renderizar spawnPoints, objectives, assets, etc.
+        // Por ejemplo:
+        // map.spawnPoints.forEach(spawn => { ... });
+        // map.objectives.forEach(obj => { ... });
+    }
+})();
+
+// --- Selector de mapa al inicio del juego ---
+async function showMapSelectorAndLoad(scene) {
+    const maps = [
+        { file: 'ciudad_ruinas', name: 'Ciudad Ruinas' },
+        { file: 'anillo_kharon', name: 'Anillo de Kharon' }
+    ];
+    // Crear menú simple con botones
+    let y = 200;
+    let title = scene.add.text(220, 120, 'Selecciona un mapa', { font: '32px Arial', fill: '#ffcc00' });
+    maps.forEach((map, idx) => {
+        let btn = scene.add.text(250, y + idx * 60, map.name, { font: '28px Arial', fill: '#00eaff', backgroundColor: '#222', padding: 8 })
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', async () => {
+                // Eliminar menú
+                title.destroy();
+                maps.forEach((_, i) => scene.children.list.filter(obj => obj.text === maps[i].name).forEach(obj => obj.destroy()));
+                // Cargar y renderizar el mapa seleccionado
+                const mapData = await loadMap(map.file);
+                if (mapData) {
+                    levelData = mapData;
+                    renderMapDetails(scene, mapData);
+                }
+            });
+    });
+}
+
+// Llama a showMapSelectorAndLoad en create
+const originalCreateMapSelector = create;
+create = async function() {
+    if (originalCreateMapSelector) await originalCreateMapSelector.call(this);
+    await showMapSelectorAndLoad(this);
+};
+
+// --- Menú avanzado de selección de mapas ---
+async function showAdvancedMapSelector(scene) {
+    const maps = [
+        { file: 'ciudad_ruinas', name: 'Ciudad Ruinas', preview: 'ruined_building.png', description: 'Zona urbana devastada, ideal para combate táctico.' },
+        { file: 'anillo_kharon', name: 'Anillo de Kharon', preview: 'space_ring.png', description: 'Estación espacial circular, múltiples niveles y zonas de gravedad variable. Ideal para combate vertical y estratégico.' }
+    ];
+    let selectedIdx = 0;
+    let menuGroup = scene.add.group();
+    let title = scene.add.text(120, 60, '¡Bienvenido al menú de selección de mapas!', { font: '28px Arial', fill: '#ffcc00' });
+    let instructions = scene.add.text(120, 100, 'Navega con ←/→ o mouse. Haz clic para vista previa. Presiona “Seleccionar” para jugar.', { font: '18px Arial', fill: '#fff' });
+    menuGroup.add(title);
+    menuGroup.add(instructions);
+    let previewImg = null;
+    let descText = null;
+    let mapButtons = [];
+    function renderMenu() {
+        // Limpiar previos
+        mapButtons.forEach(btn => btn.destroy());
+        if (previewImg) previewImg.destroy();
+        if (descText) descText.destroy();
+        // Botones de mapas
+        mapButtons = maps.map((map, idx) => {
+            let style = idx === selectedIdx ? { font: '24px Arial', fill: '#00eaff', backgroundColor: '#222', padding: 8 } : { font: '22px Arial', fill: '#aaa', backgroundColor: '#111', padding: 6 };
+            let btn = scene.add.text(120 + idx * 260, 180, map.name, style)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => { selectedIdx = idx; renderMenu(); });
+            menuGroup.add(btn);
+            return btn;
+        });
+        // Vista previa y descripción
+        let map = maps[selectedIdx];
+        previewImg = scene.add.image(220, 320, map.preview).setScale(1.2).setOrigin(0,0.5);
+        descText = scene.add.text(400, 300, map.description, { font: '20px Arial', fill: '#fff', wordWrap: { width: 340 } });
+        menuGroup.add(previewImg);
+        menuGroup.add(descText);
+    }
+    renderMenu();
+    // Flechas de teclado
+    scene.input.keyboard.on('keydown-LEFT', () => { selectedIdx = (selectedIdx + maps.length - 1) % maps.length; renderMenu(); });
+    scene.input.keyboard.on('keydown-RIGHT', () => { selectedIdx = (selectedIdx + 1) % maps.length; renderMenu(); });
+    // Botón seleccionar
+    let selectBtn = scene.add.text(320, 500, 'Seleccionar', { font: '26px Arial', fill: '#fff', backgroundColor: '#00b894', padding: 10 })
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', async () => {
+            // Eliminar menú
+            menuGroup.getChildren().forEach(obj => obj.destroy());
+            selectBtn.destroy();
+            // Cargar y renderizar el mapa seleccionado
+            const mapData = await loadMap(maps[selectedIdx].file);
+            if (mapData) {
+                levelData = mapData;
+                renderMapDetails(scene, mapData);
+            }
+        });
+    menuGroup.add(selectBtn);
+}
+
+// Llama a showAdvancedMapSelector en create
+const originalCreateAdvancedMapSelector = create;
+create = async function() {
+    if (originalCreateAdvancedMapSelector) await originalCreateAdvancedMapSelector.call(this);
+    await showAdvancedMapSelector(this);
+};
+
+// --- Menú avanzado de selección de mapas con todas las funcionalidades recomendadas ---
+async function showFullFeaturedMapSelector(scene) {
+    // 1. Cargar lista de mapas dinámicamente desde la carpeta /maps
+    let mapFiles = ['ciudad_ruinas', 'anillo_kharon']; // En producción, esto puede venir de un endpoint o generarse automáticamente
+    let maps = await Promise.all(mapFiles.map(async file => {
+        const data = await loadMap(file);
+        return {
+            file,
+            name: data.name,
+            description: data.description,
+            preview: (data.assets && data.assets[0]) || 'default_preview.png',
+            size: data.size || 'Desconocido',
+            players: data.players || 'N/A',
+            mode: data.mode || 'Todos',
+            isNFT: data.isNFT || false,
+            stats: data.stats || {},
+            ...data
+        };
+    }));
+    let selectedIdx = 0;
+    let menuGroup = scene.add.group();
+    let title = scene.add.text(80, 40, '¡Bienvenido al menú de selección de mapas!', { font: '28px Arial', fill: '#ffcc00' });
+    let instructions = scene.add.text(80, 80, 'Navega con ←/→, mouse o busca. Haz clic para vista previa. Presiona “Seleccionar” para jugar.', { font: '18px Arial', fill: '#fff' });
+    menuGroup.add(title);
+    menuGroup.add(instructions);
+    // 2. Campo de búsqueda
+    let searchBox = scene.add.dom(400, 120, 'input', 'width: 300px; font-size: 18px;', '').setOrigin(0.5);
+    menuGroup.add(searchBox);
+    // 3. Favoritos y recientes (simulado)
+    let favoritos = [];
+    let recientes = [];
+    // 4. Renderizado de lista de mapas con paginación
+    let page = 0;
+    let perPage = 2;
+    let previewImg = null;
+    let descText = null;
+    let statsText = null;
+    let mapButtons = [];
+    function renderMenu() {
+        // Filtrado
+        let filter = searchBox.node.value.toLowerCase();
+        let filtered = maps.filter(m => m.name.toLowerCase().includes(filter));
+        // Paginación
+        let totalPages = Math.ceil(filtered.length / perPage);
+        if (page >= totalPages) page = 0;
+        let start = page * perPage;
+        let end = start + perPage;
+        let visible = filtered.slice(start, end);
+        // Limpiar previos
+        mapButtons.forEach(btn => btn.destroy());
+        if (previewImg) previewImg.destroy();
+        if (descText) descText.destroy();
+        if (statsText) statsText.destroy();
+        // Botones de mapas
+        mapButtons = visible.map((map, idx) => {
+            let style = (maps.indexOf(map) === selectedIdx) ? { font: '24px Arial', fill: '#00eaff', backgroundColor: '#222', padding: 8 } : { font: '22px Arial', fill: '#aaa', backgroundColor: '#111', padding: 6 };
+            let btn = scene.add.text(80, 180 + idx * 60, map.name, style)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => { selectedIdx = maps.indexOf(map); renderMenu(); });
+            menuGroup.add(btn);
+            return btn;
+        });
+        // Vista previa y descripción
+        let map = maps[selectedIdx];
+        previewImg = scene.add.image(320, 320, map.preview).setScale(1.2).setOrigin(0,0.5);
+        descText = scene.add.text(500, 220, map.description, { font: '20px Arial', fill: '#fff', wordWrap: { width: 340 } });
+        // Estadísticas y detalles
+        let details = `Tamaño: ${map.size}\nJugadores: ${map.players}\nModos: ${map.mode}\nNFT: ${map.isNFT ? 'Sí' : 'No'}`;
+        if (map.stats && Object.keys(map.stats).length > 0) {
+            details += `\nRécords: ${JSON.stringify(map.stats)}`;
+        }
+        statsText = scene.add.text(500, 320, details, { font: '16px Arial', fill: '#b2bec3' });
+        menuGroup.add(previewImg);
+        menuGroup.add(descText);
+        menuGroup.add(statsText);
+    }
+    renderMenu();
+    // 5. Navegación por flechas y paginación
+    scene.input.keyboard.on('keydown-LEFT', () => { selectedIdx = (selectedIdx + maps.length - 1) % maps.length; renderMenu(); });
+    scene.input.keyboard.on('keydown-RIGHT', () => { selectedIdx = (selectedIdx + 1) % maps.length; renderMenu(); });
+    scene.input.keyboard.on('keydown-UP', () => { if (page > 0) { page--; renderMenu(); } });
+    scene.input.keyboard.on('keydown-DOWN', () => { if ((page+1)*perPage < maps.length) { page++; renderMenu(); } });
+    // 6. Campo de búsqueda reactivo
+    searchBox.node.addEventListener('input', () => { page = 0; renderMenu(); });
+    // 7. Botón seleccionar
+    let selectBtn = scene.add.text(320, 500, 'Seleccionar', { font: '26px Arial', fill: '#fff', backgroundColor: '#00b894', padding: 10 })
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', async () => {
+            // Eliminar menú
+            menuGroup.getChildren().forEach(obj => obj.destroy());
+            selectBtn.destroy();
+            searchBox.destroy();
+            // Cargar y renderizar el mapa seleccionado
+            const mapData = await loadMap(maps[selectedIdx].file);
+            if (mapData) {
+                levelData = mapData;
+                renderMapDetails(scene, mapData);
+            }
+        });
+    menuGroup.add(selectBtn);
+    // 8. Accesibilidad: navegación con tab y enter
+    searchBox.node.tabIndex = 0;
+    searchBox.node.addEventListener('keydown', e => {
+        if (e.key === 'Enter') selectBtn.emit('pointerdown');
+    });
+}
+
+// Llama a showFullFeaturedMapSelector en create
+const originalCreateFullFeaturedMapSelector = create;
+create = async function() {
+    if (originalCreateFullFeaturedMapSelector) await originalCreateFullFeaturedMapSelector.call(this);
+    await showFullFeaturedMapSelector(this);
+};

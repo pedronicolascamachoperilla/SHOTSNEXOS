@@ -1,0 +1,18 @@
+{
+  "name": "Ciudad Ruinas",
+  "description": "Zona urbana devastada, ideal para combate táctico.",
+  "spawnPoints": [
+    { "x": 120, "y": 180 },
+    { "x": 600, "y": 400 },
+    { "x": 350, "y": 250 }
+  ],
+  "objectives": [
+    { "type": "captura_bandera", "location": { "x": 400, "y": 300 } },
+    { "type": "zona_control", "area": { "x": 200, "y": 200, "width": 100, "height": 100 } }
+  ],
+  "assets": [
+    "ruined_building.png",
+    "burned_car.png",
+    "broken_bridge.png"
+  ]
+}
